@@ -7,11 +7,9 @@ import {
 
 const router = express.Router();
 
-router
-  .route("/")
+router.route("/")
   .get(getAllUsers)
   .post(createUser)
-  .put(updateUser)
+  .put(updateUser);
 
-
-  export default router;
+export default router;

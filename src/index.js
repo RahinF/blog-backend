@@ -7,7 +7,8 @@ import errorHandler from "./middleware/errorHandler.js";
 import corsOptions from "./config/corsOptions.js";
 import connectDB from "./config/dbConnect.js";
 import mongoose from "mongoose";
-import userRoutes from './routes/userRoutes.js'
+import userRoutes from './routes/userRoutes.js';
+import postRoutes from './routes/postRoutes.js';
 
 const app = express();
 dotenv.config();
@@ -25,6 +26,7 @@ app.get("/", (request, response) => {
 });
 
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/posts', postRoutes);
 
 app.use(errorHandler);
 
