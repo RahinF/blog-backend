@@ -1,6 +1,7 @@
 import expressAsyncHandler from "express-async-handler";
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
+import { PASSWORD_REGEX } from "../constants/regex.js";
 
 /**
  *  @desciption get all users
@@ -11,7 +12,7 @@ export const getAllUsers = expressAsyncHandler(async (request, response) => {
   const users = await User.find().select("-password").lean();
 
   if (!users?.length) {
-    return response.status(400).json({ message: "No users found" });
+    return response.status(400).json({ message: "No users found." });
   }
 
   response.json(users);
@@ -25,25 +26,21 @@ export const getAllUsers = expressAsyncHandler(async (request, response) => {
 export const createUser = expressAsyncHandler(async (request, response) => {
   const { username, email, password } = request.body;
 
-  const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-
   if (!username || !email || !password) {
     return response.status(400).json({ message: "All fields are required." });
   }
 
   if (!PASSWORD_REGEX.test(password)) {
-    return response
-      .status(400)
-      .json({
-        message:
-          "Password must contain 8 characters including at least 1 letter and 1 number.",
-      });
+    return response.status(400).json({
+      message:
+        "Password must contain 8 characters including at least 1 letter and 1 number.",
+    });
   }
 
   const duplicate = await User.findOne({ email }).lean().exec();
 
   if (duplicate) {
-    response.status(409).json({ message: "Email is already in use." });
+    return response.status(409).json({ message: "Email is already in use." });
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -62,4 +59,49 @@ export const createUser = expressAsyncHandler(async (request, response) => {
  *  @route PUT /
  *  @access PRIVATE
  **/
-export const updateUser = expressAsyncHandler(async (request, response) => {});
+export const updateUser = expressAsyncHandler(async (request, response) => {
+  const { id, username, email, password } = request.body;
+
+  if (!id) {
+    return response.status(400).json({ message: "User ID is required." });
+  }
+
+  if (!username && !email && !password) {
+    return response
+      .status(400)
+      .json({ message: "Username, Email, or Password is required." });
+  }
+
+  const user = await User.findById(id).exec();
+
+  if (!user) {
+    return response.status(400).json({ message: "User not found." });
+  }
+
+  if (username) {
+    user.username = username;
+  }
+
+  if (email) {
+    const duplicate = await User.findOne({ email }).lean().exec();
+    if (duplicate) {
+      return response.status(409).json({ message: "Email is already in use." });
+    }
+
+    user.email = email;
+  }
+
+  if (password) {
+    if (!PASSWORD_REGEX.test(password)) {
+      return response.status(400).json({
+        message:
+          "Password must contain 8 characters including at least 1 letter and 1 number.",
+      });
+    }
+    user.password = await bcrypt.hash(password, 10);
+  }
+
+  const updatedUser = await user.save();
+
+  response.json({ message: `${updatedUser.username} updated.` });
+});
