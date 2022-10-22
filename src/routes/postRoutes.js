@@ -15,7 +15,7 @@ router.route("/")
   .put(updatePost)
   .delete(deletePost);
 
-  router.route('/:id')
+  router.route('/:postId')
     .get(getPost);
 
 export default router;

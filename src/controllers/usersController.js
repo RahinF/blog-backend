@@ -2,6 +2,7 @@ import expressAsyncHandler from "express-async-handler";
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import { PASSWORD_REGEX } from "../constants/regex.js";
+import mongoose from "mongoose";
 
 /**
  *  @desciption get all users
@@ -60,10 +61,12 @@ export const createUser = expressAsyncHandler(async (request, response) => {
  *  @access PRIVATE
  **/
 export const updateUser = expressAsyncHandler(async (request, response) => {
-  const { id, username, email, password } = request.body;
+  const { userId, username, email, password } = request.body;
 
-  if (!id) {
-    return response.status(400).json({ message: "User ID is required." });
+  if (!mongoose.isValidObjectId(userId)) {
+    return response
+      .status(400)
+      .json({ message: "A valid 'userId' is required." });
   }
 
   if (!username && !email && !password) {
@@ -72,7 +75,7 @@ export const updateUser = expressAsyncHandler(async (request, response) => {
       .json({ message: "Username, Email, or Password is required." });
   }
 
-  const user = await User.findById(id).exec();
+  const user = await User.findById(userId).exec();
 
   if (!user) {
     return response.status(400).json({ message: "User not found." });

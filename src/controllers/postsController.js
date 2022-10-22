@@ -1,5 +1,7 @@
 import expressAsyncHandler from "express-async-handler";
+import mongoose from "mongoose";
 import Post from "../models/Post.js";
+import Comment from "../models/Comment.js";
 
 /**
  *  @desciption get all posts
@@ -33,8 +35,8 @@ export const getAllPosts = expressAsyncHandler(async (request, response) => {
  *  @access PUBLIC
  **/
 export const getPost = expressAsyncHandler(async (request, response) => {
-  const { id } = request.params;
-  const post = await Post.findById(id).lean();
+  const { postId } = request.params;
+  const post = await Post.findById(postId).lean();
 
   if (!post) {
     return response.status(400).json({ message: "No post found." });
@@ -54,7 +56,7 @@ export const createPost = expressAsyncHandler(async (request, response) => {
   if (!title || !text || !category) {
     return response
       .status(400)
-      .json({ message: "All fields except image are required." });
+      .json({ message: "Title, Text and Category are required." });
   }
 
   const post = await Post.create({ title, text, image, category });
@@ -74,10 +76,12 @@ export const createPost = expressAsyncHandler(async (request, response) => {
  *  @access PRIVATE
  **/
 export const updatePost = expressAsyncHandler(async (request, response) => {
-  const { id, title, text, image, category } = request.body;
+  const { postId, title, text, image, category } = request.body;
 
-  if (!id) {
-    return response.status(400).json({ message: "Post ID is required." });
+  if (!mongoose.isValidObjectId(postId)) {
+    return response
+      .status(400)
+      .json({ message: "A valid 'postId' is required." });
   }
 
   if (!title && !text && !category) {
@@ -86,7 +90,7 @@ export const updatePost = expressAsyncHandler(async (request, response) => {
       .json({ message: "Title, Text, or Category is required." });
   }
 
-  const post = await Post.findById(id).exec();
+  const post = await Post.findById(postId).exec();
 
   if (!post) {
     return response.status(400).json({ message: "Post not found." });
@@ -119,19 +123,25 @@ export const updatePost = expressAsyncHandler(async (request, response) => {
  *  @access PRIVATE
  **/
 export const deletePost = expressAsyncHandler(async (request, response) => {
-  const { id } = request.body;
+  const { postId } = request.body;
 
-  if (!id) {
-    return response.status(400).json({ message: "Post ID is required." });
+  if (!mongoose.isValidObjectId(postId)) {
+    return response
+      .status(400)
+      .json({ message: "A valid 'postId' is required." });
   }
 
-  const post = await Post.findById(id).exec();
+  const post = await Post.findById(postId).exec();
 
   if (!post) {
     return response.status(400).json({ message: "Post not found." });
   }
 
   const result = await post.deleteOne();
+
+  if (result) {
+    await Comment.deleteMany({ postId: post._id });
+  }
 
   response.json(`Post '${result.title}' with ID ${result._id} deleted.`);
 });
