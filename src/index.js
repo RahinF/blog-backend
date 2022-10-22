@@ -9,6 +9,7 @@ import connectDB from "./config/dbConnect.js";
 import mongoose from "mongoose";
 import userRoutes from './routes/userRoutes.js';
 import postRoutes from './routes/postRoutes.js';
+import commentRoutes from './routes/commentRoutes.js';
 
 const app = express();
 dotenv.config();
@@ -27,6 +28,7 @@ app.get("/", (request, response) => {
 
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/posts', postRoutes);
+app.use('/api/v1/comments', commentRoutes);
 
 app.use(errorHandler);
 
