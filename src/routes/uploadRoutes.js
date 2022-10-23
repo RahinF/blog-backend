@@ -4,11 +4,12 @@ import multer from "multer";
 import path from "path";
 import { v4 as uuid } from "uuid";
 import { existsSync, mkdirSync } from "fs";
+import { verifyJWT } from "../middleware/verifyJWT.js";
 
 const router = express.Router();
 
 const storage = multer.diskStorage({
-  destination: function (request, file, callback) {
+  destination: (request, file, callback) => {
     const path = "src/uploads/";
 
     if (!existsSync(path)) {
@@ -17,12 +18,14 @@ const storage = multer.diskStorage({
 
     callback(null, path);
   },
-  filename: function (request, file, callback) {
+  filename: (request, file, callback) => {
     callback(null, uuid() + path.extname(file.originalname));
   },
 });
 
 const upload = multer({ storage }).single("file");
+
+router.use(verifyJWT);
 
 router
   .route("/")

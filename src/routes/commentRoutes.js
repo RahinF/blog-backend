@@ -5,6 +5,7 @@ import {
   updateComment,
   deleteComment,
 } from "../controllers/commentsController.js";
+import { verifyJWT } from "../middleware/verifyJWT.js";
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ router
   .route("/")
   .get(getAllComments)
   .post(createComment)
-  .put(updateComment)
-  .delete(deleteComment);
+  .put(verifyJWT, updateComment)
+  .delete(verifyJWT, deleteComment);
 
 export default router;

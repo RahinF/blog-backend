@@ -2,6 +2,7 @@ import expressAsyncHandler from "express-async-handler";
 import mongoose from "mongoose";
 import Post from "../models/Post.js";
 import Comment from "../models/Comment.js";
+import { existsSync, unlink } from "fs";
 
 /**
  *  @desciption get all posts
@@ -140,6 +141,13 @@ export const deletePost = expressAsyncHandler(async (request, response) => {
   const result = await post.deleteOne();
 
   if (result) {
+    if (result.image) {
+      const path = `src/uploads/${result.image}`;
+
+      if (existsSync(path)) {
+        unlink(path, () => {});
+      }
+    }
     await Comment.deleteMany({ postId: post._id });
   }
 
