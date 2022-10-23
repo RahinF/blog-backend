@@ -1,4 +1,5 @@
 import express from "express";
+import { verifyJWT } from "../middleware/verifyJWT.js";
 import {
   createUser,
   getAllUsers,
@@ -7,9 +8,13 @@ import {
 
 const router = express.Router();
 
-router.route("/")
+router
+  .route("/")
   .get(getAllUsers)
   .post(createUser)
-  .put(updateUser);
+  .put(verifyJWT, updateUser);
 
 export default router;
+
+
+ 

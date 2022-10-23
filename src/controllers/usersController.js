@@ -61,7 +61,8 @@ export const createUser = expressAsyncHandler(async (request, response) => {
  *  @access PRIVATE
  **/
 export const updateUser = expressAsyncHandler(async (request, response) => {
-  const { userId, username, email, password } = request.body;
+  const { username, email, password } = request.body;
+  const userId = request.user;
 
   if (!mongoose.isValidObjectId(userId)) {
     return response
