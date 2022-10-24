@@ -25,7 +25,7 @@ export const deleteFile = expressAsyncHandler(async (request, response) => {
 
   unlink(path, (error) => {
     if (error) {
-      return response.status(500).json(`File could not be deleted.`);
+      return response.status(500).json("File could not be deleted.");
     }
 
     response.status(200).json(`${filename} was deleted.`);

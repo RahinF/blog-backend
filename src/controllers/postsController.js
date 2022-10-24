@@ -138,11 +138,11 @@ export const deletePost = expressAsyncHandler(async (request, response) => {
     return response.status(400).json({ message: "Post not found." });
   }
 
-  const result = await post.deleteOne();
+  const postDeleted = await post.deleteOne();
 
-  if (result) {
-    if (result.image) {
-      const path = `src/uploads/${result.image}`;
+  if (postDeleted) {
+    if (postDeleted.image) {
+      const path = `src/uploads/${postDeleted.image}`;
 
       if (existsSync(path)) {
         unlink(path, () => {});
@@ -151,5 +151,7 @@ export const deletePost = expressAsyncHandler(async (request, response) => {
     await Comment.deleteMany({ postId: post._id });
   }
 
-  response.json(`Post '${result.title}' with ID ${result._id} deleted.`);
+  response.json(
+    `Post '${postDeleted.title}' with ID ${postDeleted._id} deleted.`
+  );
 });

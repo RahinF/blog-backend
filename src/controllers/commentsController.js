@@ -17,28 +17,53 @@ export const getAllComments = expressAsyncHandler(async (request, response) => {
       .json({ message: "A valid 'postId' is required." });
   }
 
-  const comments = await Comment.find({ postId }).lean();
+  const comments = await Comment.find({
+    postId,
+    parentId: { $exists: false },
+  }).lean();
 
   if (!comments?.length) {
     return response.status(400).json({ message: "No comments found." });
   }
 
-  const commentsWithAuthor = await Promise.all(
-    comments.map(async (comment) => {
-      if (mongoose.isValidObjectId(comment.author)) {
-        const user = await User.findOne({ author: comment.author })
-          .select("-password")
-          .lean()
-          .exec();
+  const findUser = async ({ author }) => {
+    if (mongoose.isValidObjectId(author)) {
+      const user = await User.findOne({ author })
+        .select("-password -refreshToken -isAdmin")
+        .lean()
+        .exec();
 
-        return { ...comment, author: user };
-      } else {
-        return comment;
-      }
+      return user;
+    } else {
+      return author;
+    }
+  };
+
+  const findChildren = async (comment) => {
+    const childrenFound = await Comment.find({ parentId: comment._id })
+      .lean()
+      .exec();
+
+    const nestedChildren = await Promise.all(
+      childrenFound.map(async (child) => {
+        child.author = await findUser(child);
+        child.children = await findChildren(child);
+        return child;
+      })
+    );
+
+    return nestedChildren.length ? nestedChildren : undefined;
+  };
+
+  await Promise.all(
+    comments.map(async (comment) => {
+      comment.author = await findUser(comment);
+      comment.children = await findChildren(comment);
+      return comment;
     })
   );
 
-  response.json(commentsWithAuthor);
+  response.json(comments);
 });
 
 /**
@@ -126,30 +151,32 @@ export const deleteComment = expressAsyncHandler(async (request, response) => {
   }
 
   //   find children
-  let childrenArray = [];
+  let commentChildren = [];
 
   const findChildren = async (commentId) => {
     const children = await Comment.find({ parentId: commentId }).exec();
 
-    const childrenIds = await Promise.all(
+    const childrenFound = await Promise.all(
       children.map(async (child) => {
-        if (child.parentId) {
-          await findChildren(child._id);
-        }
+        await findChildren(child._id);
         return child;
       })
     );
 
-    childrenArray.push(childrenIds);
+    commentChildren.push(childrenFound);
   };
 
   await findChildren(comment._id);
 
-  await Promise.all(
-    childrenArray.flat().map(async (child) => await child.deleteOne())
-  );
+  const commentDeleted = await comment.deleteOne();
 
-  const result = await comment.deleteOne();
+  if (commentDeleted) {
+    await Promise.all(
+      commentChildren.flat().map(async (child) => await child.deleteOne())
+    );
+  }
 
-  response.status(200).json(`Comment of ID ${result._id} and replies deleted.`);
+  response
+    .status(200)
+    .json(`Comment of ID ${commentDeleted._id} and replies deleted.`);
 });

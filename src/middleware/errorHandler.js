@@ -3,7 +3,7 @@ import { logEvents } from "./logger.js";
 const errorHandler = (error, request, response, next) => {
   logEvents(
     `${error.name}: ${error.message}\t${request.method}\t${request.url}\t${request.headers.origin}`,
-    `errorLog.log`
+    "errorLog.log"
   );
 
   console.log(error.stack);
