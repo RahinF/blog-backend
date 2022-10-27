@@ -10,7 +10,7 @@ import { existsSync, unlink } from "fs";
  *  @access PUBLIC
  **/
 export const getAllPosts = expressAsyncHandler(async (request, response) => {
-  const { category } = request.body;
+  const { category } = request.query;
 
   let posts;
   if (category) {
@@ -24,7 +24,7 @@ export const getAllPosts = expressAsyncHandler(async (request, response) => {
   }
 
   if (!posts?.length) {
-    return response.status(400).json({ message: "No posts found." });
+    return response.status(404).json({ message: "No posts found." });
   }
 
   response.json(posts);
@@ -40,7 +40,7 @@ export const getPost = expressAsyncHandler(async (request, response) => {
   const post = await Post.findById(postId).lean();
 
   if (!post) {
-    return response.status(400).json({ message: "No post found." });
+    return response.status(404).json({ message: "No post found." });
   }
 
   response.json(post);
@@ -63,7 +63,7 @@ export const createPost = expressAsyncHandler(async (request, response) => {
   const post = await Post.create({ title, text, image, category });
 
   if (post) {
-    return response.status(201).json({ message: "New post created." });
+    return response.status(201).json(post._id);
   } else {
     return response
       .status(400)
@@ -94,7 +94,7 @@ export const updatePost = expressAsyncHandler(async (request, response) => {
   const post = await Post.findById(postId).exec();
 
   if (!post) {
-    return response.status(400).json({ message: "Post not found." });
+    return response.status(404).json({ message: "Post not found." });
   }
 
   if (title) {
@@ -115,7 +115,7 @@ export const updatePost = expressAsyncHandler(async (request, response) => {
 
   const updatedPost = await post.save();
 
-  response.json({ message: `${updatedPost.title} updated.` });
+  response.json(updatedPost._id);
 });
 
 /**
@@ -135,7 +135,7 @@ export const deletePost = expressAsyncHandler(async (request, response) => {
   const post = await Post.findById(postId).exec();
 
   if (!post) {
-    return response.status(400).json({ message: "Post not found." });
+    return response.status(404).json({ message: "Post not found." });
   }
 
   const postDeleted = await post.deleteOne();

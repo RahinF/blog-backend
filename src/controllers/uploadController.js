@@ -7,7 +7,7 @@ export const uploadFile = expressAsyncHandler(async (request, response) => {
   }
 
   const filename = request.file.filename;
-  response.status(200).json({ filename });
+  response.status(201).json(filename);
 });
 
 export const deleteFile = expressAsyncHandler(async (request, response) => {
@@ -20,7 +20,7 @@ export const deleteFile = expressAsyncHandler(async (request, response) => {
   const path = `src/uploads/${filename}`;
 
   if (!existsSync(path)) {
-    return response.status(400).json({ message: "File was not found." });
+    return response.status(404).json({ message: "File was not found." });
   }
 
   unlink(path, (error) => {

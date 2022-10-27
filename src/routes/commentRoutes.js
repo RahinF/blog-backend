@@ -9,9 +9,10 @@ import { verifyJWT } from "../middleware/verifyJWT.js";
 
 const router = express.Router();
 
+router.get('/:postId', getAllComments);
+
 router
   .route("/")
-  .get(getAllComments)
   .post(createComment)
   .put(verifyJWT, updateComment)
   .delete(verifyJWT, deleteComment);

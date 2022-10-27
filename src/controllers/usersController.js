@@ -13,7 +13,7 @@ export const getAllUsers = expressAsyncHandler(async (request, response) => {
   const users = await User.find().select("-password").lean();
 
   if (!users?.length) {
-    return response.status(400).json({ message: "No users found." });
+    return response.status(404).json({ message: "No users found." });
   }
 
   response.json(users);
@@ -79,7 +79,7 @@ export const updateUser = expressAsyncHandler(async (request, response) => {
   const user = await User.findById(userId).exec();
 
   if (!user) {
-    return response.status(400).json({ message: "User not found." });
+    return response.status(404).json({ message: "User not found." });
   }
 
   if (username) {

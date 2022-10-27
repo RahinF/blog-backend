@@ -9,7 +9,7 @@ import User from "../models/User.js";
  *  @access PUBLIC
  **/
 export const getAllComments = expressAsyncHandler(async (request, response) => {
-  const { postId } = request.body;
+  const { postId } = request.params;
 
   if (!mongoose.isValidObjectId(postId)) {
     return response
@@ -23,7 +23,7 @@ export const getAllComments = expressAsyncHandler(async (request, response) => {
   }).lean();
 
   if (!comments?.length) {
-    return response.status(400).json({ message: "No comments found." });
+    return response.status(404).json({ message: "No comments found." });
   }
 
   const findUser = async ({ author }) => {
@@ -118,7 +118,7 @@ export const updateComment = expressAsyncHandler(async (request, response) => {
   const comment = await Comment.findById(commentId).exec();
 
   if (!comment) {
-    return response.status(400).json({ message: "Comment not found." });
+    return response.status(404).json({ message: "Comment not found." });
   }
 
   comment.text = text;
@@ -147,7 +147,7 @@ export const deleteComment = expressAsyncHandler(async (request, response) => {
   const comment = await Comment.findById(commentId).exec();
 
   if (!comment) {
-    return response.status(400).json({ message: "Comment not found." });
+    return response.status(404).json({ message: "Comment not found." });
   }
 
   //   find children
