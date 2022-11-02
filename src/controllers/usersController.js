@@ -13,7 +13,7 @@ export const getAllUsers = expressAsyncHandler(async (request, response) => {
   const users = await User.find().select("-password").lean();
 
   if (!users?.length) {
-    return response.status(404).json({ message: "No users found." });
+    return response.status(200).json(users);
   }
 
   response.json(users);

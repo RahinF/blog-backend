@@ -24,7 +24,7 @@ export const getAllPosts = expressAsyncHandler(async (request, response) => {
   }
 
   if (!posts?.length) {
-    return response.status(404).json({ message: "No posts found." });
+    return response.status(200).json(posts);
   }
 
   response.json(posts);

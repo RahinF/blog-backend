@@ -23,7 +23,7 @@ export const getAllComments = expressAsyncHandler(async (request, response) => {
   }).lean();
 
   if (!comments?.length) {
-    return response.status(404).json({ message: "No comments found." });
+    return response.status(200).json(comments);
   }
 
   const findUser = async ({ author }) => {
