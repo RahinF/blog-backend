@@ -23,10 +23,6 @@ export const getAllPosts = expressAsyncHandler(async (request, response) => {
     posts = await Post.find().sort({ createdAt: -1 }).lean();
   }
 
-  if (!posts?.length) {
-    return response.status(200).json(posts);
-  }
-
   response.json(posts);
 });
 
