@@ -59,6 +59,65 @@ export const login = expressAsyncHandler(async (request, response) => {
 });
 
 /**
+ *  @desciption register
+ *  @route POST /
+ *  @access PUBLIC
+ **/
+export const register = expressAsyncHandler(async (request, response) => {
+  const { username, email, password } = request.body;
+
+  if (!username || !email || !password) {
+    return response
+      .status(400)
+      .json({ message: "All fields are required." });
+  }
+
+  const duplicate = await User.findOne({ email }).exec();
+  if (duplicate)
+    return response
+      .status(409)
+      .json({ message: "The email address is already in use." });
+
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const user = await User.create({
+    username,
+    email,
+    password: hashedPassword,
+  });
+
+
+  const accessToken = jwt.sign(
+    { userId: user._id },
+    process.env.ACCESS_TOKEN_SECRET,
+    {
+      expiresIn: "10m",
+    }
+  );
+
+  const refreshToken = jwt.sign(
+    { userId: user._id },
+    process.env.REFRESH_TOKEN_SECRET,
+    {
+      expiresIn: "1d",
+    }
+  );
+
+  user.refreshToken = refreshToken;
+  await user.save();
+
+  response.cookie("jwt", refreshToken, {
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000, // 1 day
+    sameSite: "none",
+    secure: true,
+  });
+
+  response.status(200).json({ accessToken });
+});
+
+/**
  *  @desciption refresh
  *  @route GET / refresh
  *  @access PUBLIC
