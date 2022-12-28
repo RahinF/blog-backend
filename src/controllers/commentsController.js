@@ -26,12 +26,16 @@ export const getAllComments = expressAsyncHandler(async (request, response) => {
     return response.status(200).json(comments);
   }
 
+
+
   const findUser = async ({ author }) => {
     if (mongoose.isValidObjectId(author)) {
-      const user = await User.findOne({ author })
+      const user = await User.findById(author)
         .select("-password -refreshToken -isAdmin")
         .lean()
         .exec();
+
+
 
       return user;
     } else {

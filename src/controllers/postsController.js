@@ -1,6 +1,7 @@
 import expressAsyncHandler from "express-async-handler";
 import mongoose from "mongoose";
 import Post from "../models/Post.js";
+import User from "../models/User.js";
 import Comment from "../models/Comment.js";
 import { existsSync, unlink } from "fs";
 
@@ -23,7 +24,17 @@ export const getAllPosts = expressAsyncHandler(async (request, response) => {
     posts = await Post.find().sort({ createdAt: -1 }).lean();
   }
 
-  response.json(posts);
+  const postsWithAuthor = await Promise.all(
+    posts.map(async (post) => {
+      const author = await User.findById(post.author)
+        .select("-email -password -refreshToken -isAdmin -__v")
+        .lean();
+      post.author = author;
+      return post;
+    })
+  );
+
+  response.json(postsWithAuthor);
 });
 
 /**
@@ -38,6 +49,11 @@ export const getPost = expressAsyncHandler(async (request, response) => {
   if (!post) {
     return response.status(404).json({ message: "No post found." });
   }
+
+  const author = await User.findById(post.author)
+    .select("-email -password -refreshToken -isAdmin -__v")
+    .lean();
+  post.author = author;
 
   response.json(post);
 });
@@ -56,7 +72,9 @@ export const createPost = expressAsyncHandler(async (request, response) => {
       .json({ message: "Title, Text and Category are required." });
   }
 
-  const post = await Post.create({ title, text, image, category });
+  const author = request.user;
+
+  const post = await Post.create({ author, title, text, image, category });
 
   if (post) {
     return response.status(201).json(post._id);
