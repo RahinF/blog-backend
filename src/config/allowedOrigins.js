@@ -1,5 +1,5 @@
 const allowedOrigins = [
-    'https://blog-j4ee.onrender.com',
+    `${process.env.BACKEND_URL}`,
     'http://localhost:3000'
 ];
 

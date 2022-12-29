@@ -164,25 +164,22 @@ export const refresh = expressAsyncHandler(async (request, response) => {
  *  @access PRIVATE
  **/
 export const logout = expressAsyncHandler(async (request, response) => {
-  // On the cliend delete jwt access token from memory!
-
   const cookies = request.cookies;
 
-  if (!cookies?.jwt) return response.sendStatus(204); // no content
+  if (!cookies?.jwt) {
+    return response.sendStatus(204);
+  }
 
-  const refreshToken = cookies.jwt;
+  const user = await User.findOne({ refreshToken: cookies.jwt });
 
-  // find user with this refresh token
-  const foundUser = await User.findOne({ refreshToken });
+  if (user) {
+    user.refreshToken = "";
+    await user.save();
+  }
 
-  // clear cookie
-  response.clearCookie("jwt");
-
-  // clear cookie if user is not found
-  if (!foundUser) return response.sendStatus(204);
-
-  // delete refresh token in database
-  await foundUser.updateOne({ refreshToken: "" });
-
+  response.clearCookie("jwt", {
+    sameSite: "none",
+    secure: true
+  });
   response.sendStatus(204);
 });
