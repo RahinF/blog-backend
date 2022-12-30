@@ -2,6 +2,7 @@ import expressAsyncHandler from "express-async-handler";
 import bcrypt from "bcrypt";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
+import { PASSWORD_REGEX } from "../constants/regex.js";
 
 /**
  *  @desciption login
@@ -72,11 +73,19 @@ export const register = expressAsyncHandler(async (request, response) => {
       .json({ message: "All fields are required." });
   }
 
-  const duplicate = await User.findOne({ email }).exec();
+  if (!PASSWORD_REGEX.test(password)) {
+    return response.status(400).json({
+      message:
+        "Password must contain 8 characters including at least 1 letter and 1 number.",
+    });
+  }
+
+  const duplicate = await User.findOne({ email }).lean().exec();
+
   if (duplicate)
     return response
       .status(409)
-      .json({ message: "The email address is already in use." });
+      .json({ message: "Email address is already in use." });
 
 
   const hashedPassword = await bcrypt.hash(password, 10);
