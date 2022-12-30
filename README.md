@@ -3,7 +3,6 @@
 ## Features
 - CRUD operations on Posts and comments
 - Nested comments system
-- File upload (stored on server)
 - JWT auth with login persistance
 
 ## Routes
