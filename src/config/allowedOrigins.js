@@ -1,5 +1,5 @@
 const allowedOrigins = [
-    `${process.env.BACKEND_URL}`,
+    `${process.env.FRONTEND_URL}`,
     'http://localhost:3000'
 ];
 
